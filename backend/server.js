@@ -34,11 +34,13 @@ app.use('/api/shoppinglist', shoppingListRoutes);
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Fallback: Send index.html for any unknown route (supports SPA routes if any, or general access)
-app.get('/*splat', (req, res, next) => {
-  // If the path starts with /api, it's a missing API endpoint, don't serve HTML
-  if (req.path.startsWith('/api')) {
+// Fallback: serve frontend index.html for any non-API GET request (SPA support)
+app.use((req, res, next) => {
+  // Only handle GET requests that are not API calls
+  if (req.method !== 'GET' || req.path.startsWith('/api')) {
     return next();
   }
+
   res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
 });
 
@@ -47,13 +49,17 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Server Error'
+    message: err.message || 'Server Error',
   });
 });
 
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
-  console.log(`Server running in mode on port ${PORT}`);
-  console.log(`Open http://localhost:${PORT} in your browser to view the application.`);
+  console.log(
+    `Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`,
+  );
+  console.log(
+    `Open http://localhost:${PORT} in your browser to view the application.`,
+  );
 });

@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Manage your dietary preferences, calorie targets, custom recipes, and analyze ingredient nutrition using the USDA Food Database.">
+  <meta name="description"
+    content="Manage your dietary preferences, calorie targets, custom recipes, and analyze ingredient nutrition using the USDA Food Database.">
   <title>NutriPlan - User Profile & Tracker</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
+
 <body>
 
   <!-- App Header -->
@@ -19,7 +23,11 @@
       </a>
       <nav>
         <ul class="nav-menu" id="nav-menu">
-          <!-- Loaded dynamically -->
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="recipes.html" class="nav-link">Explore</a></li>
+          <li><a href="mealplan.html" class="nav-link">Meal Planner</a></li>
+          <li><a href="shoppinglist.html" class="nav-link">Shopping List</a></li>
+          <li><a href="profile.html" class="nav-link active">Profile</a></li>
         </ul>
       </nav>
       <div class="nav-actions" id="header-actions">
@@ -35,7 +43,7 @@
     </section>
 
     <div class="profile-layout">
-      
+
       <!-- Profile summary sidebar -->
       <aside class="profile-sidebar-card glass-panel">
         <div class="profile-avatar-container">
@@ -43,7 +51,7 @@
         </div>
         <h3 class="profile-username" id="profile-username">John Doe</h3>
         <p class="profile-email" id="profile-email">john@example.com</p>
-        
+
         <div class="profile-stats-group">
           <div class="profile-stat-box">
             <span class="profile-stat-num" id="stat-saved-count">0</span>
@@ -67,7 +75,7 @@
         <!-- Tab 1: Preferences -->
         <div id="tab-preferences" class="profile-tab-content active">
           <h3 style="font-family: var(--font-heading); margin-bottom: 1.5rem;">Target Daily Nutrients</h3>
-          
+
           <form id="preferences-form">
             <div class="form-group">
               <label class="form-label" for="pref-diet">Dietary Preference</label>
@@ -116,12 +124,15 @@
           </div>
 
           <!-- Creator Form (Hidden by default) -->
-          <form id="custom-recipe-form" class="glass-panel" style="display: none; padding: 1.5rem; margin-bottom: 2rem; border-color: var(--accent-cyan);">
-            <h4 style="font-family: var(--font-heading); margin-bottom: 1rem; color: var(--accent-cyan);">New Custom Recipe</h4>
-            
+          <form id="custom-recipe-form" class="glass-panel"
+            style="display: none; padding: 1.5rem; margin-bottom: 2rem; border-color: var(--accent-cyan);">
+            <h4 style="font-family: var(--font-heading); margin-bottom: 1rem; color: var(--accent-cyan);">New Custom
+              Recipe</h4>
+
             <div class="form-group">
               <label class="form-label" for="custom-recipe-title">Recipe Title</label>
-              <input type="text" id="custom-recipe-title" class="form-input" placeholder="e.g. Grandma's Low-Carb Meatballs" required>
+              <input type="text" id="custom-recipe-title" class="form-input"
+                placeholder="e.g. Grandma's Low-Carb Meatballs" required>
             </div>
 
             <div class="form-row-double">
@@ -137,12 +148,16 @@
 
             <div class="form-group">
               <label class="form-label" for="custom-recipe-ingredients">Ingredients (one per line)</label>
-              <textarea id="custom-recipe-ingredients" class="form-input" rows="4" placeholder="e.g. 500g ground beef&#10;1 large egg&#10;1/2 cup grated parmesan cheese" required style="resize: vertical; font-family: inherit;"></textarea>
+              <textarea id="custom-recipe-ingredients" class="form-input" rows="4"
+                placeholder="e.g. 500g ground beef&#10;1 large egg&#10;1/2 cup grated parmesan cheese" required
+                style="resize: vertical; font-family: inherit;"></textarea>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="custom-recipe-instructions">Instructions (one step per line)</label>
-              <textarea id="custom-recipe-instructions" class="form-input" rows="4" placeholder="e.g. Combine ingredients in a bowl.&#10;Roll into small balls.&#10;Bake at 400°F for 18 minutes." required style="resize: vertical; font-family: inherit;"></textarea>
+              <textarea id="custom-recipe-instructions" class="form-input" rows="4"
+                placeholder="e.g. Combine ingredients in a bowl.&#10;Roll into small balls.&#10;Bake at 400°F for 18 minutes."
+                required style="resize: vertical; font-family: inherit;"></textarea>
             </div>
 
             <div class="form-row-double">
@@ -172,11 +187,13 @@
         <!-- Tab 3: USDA Food Database Tracker -->
         <div id="tab-usda-tracker" class="profile-tab-content">
           <h3 style="font-family: var(--font-heading); margin-bottom: 0.5rem;">USDA FoodData Central Search</h3>
-          <p class="page-subtitle" style="margin-bottom: 1.5rem;">Lookup detailed nutritional information direct from the USDA database.</p>
+          <p class="page-subtitle" style="margin-bottom: 1.5rem;">Lookup detailed nutritional information direct from
+            the USDA database.</p>
 
           <form id="usda-search-form" class="search-form" style="margin-bottom: 2rem;">
             <div class="search-input-wrapper">
-              <input type="text" id="usda-query" class="search-input" placeholder="Search USDA food items (e.g. apple, yogurt, oats)..." required>
+              <input type="text" id="usda-query" class="search-input"
+                placeholder="Search USDA food items (e.g. apple, yogurt, oats)..." required>
             </div>
             <button type="submit" class="btn btn-primary">Lookup</button>
           </form>
@@ -208,7 +225,7 @@
           <input type="hidden" id="usda-adder-fdcId">
           <input type="hidden" id="usda-adder-name">
           <input type="hidden" id="usda-adder-calories">
-          
+
           <div class="form-group">
             <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;" id="usda-adder-summary">
               Nutrients per 100g: Calories: 52 kcal | Protein: 0.3g | Carbs: 14g
@@ -248,4 +265,5 @@
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>

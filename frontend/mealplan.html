@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="View and configure your weekly meal plan, watch aggregate calorie summaries, and customize your diet grid.">
+  <meta name="description"
+    content="View and configure your weekly meal plan, watch aggregate calorie summaries, and customize your diet grid.">
   <title>NutriPlan - Weekly Meal Planner</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
+
 <body>
 
   <!-- App Header -->
@@ -21,11 +25,14 @@
         <ul class="nav-menu" id="nav-menu">
           <!-- Loaded dynamically -->
         </ul>
-      </nav>
-      <div class="nav-actions" id="header-actions">
-        <!-- Loaded dynamically -->
-      </div>
-    </div>
+        <nav>
+          <ul class="nav-menu" id="nav-menu">
+            <li><a href="index.html" class="nav-link">Home</a></li>
+            <li><a href="recipes.html" class="nav-link">Explore</a></li>
+            <li><a href="mealplan.html" class="nav-link active">Meal Planner</a></li>
+            <li><a href="shoppinglist.html" class="nav-link">Shopping List</a></li>
+          </ul>
+        </nav>
   </header>
 
   <main class="main-content">
@@ -33,7 +40,8 @@
       <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
         <div>
           <h2 class="page-title">Weekly Meal Planner</h2>
-          <p class="page-subtitle">Schedule your meals, organize your eating routine, and track daily macro summaries.</p>
+          <p class="page-subtitle">Schedule your meals, organize your eating routine, and track daily macro summaries.
+          </p>
         </div>
         <div>
           <button id="btn-clear-week" class="btn btn-danger btn-sm">Clear Current Week</button>
@@ -41,25 +49,100 @@
       </div>
     </section>
 
-    <!-- Controls for date shifting -->
-    <section class="meal-controls glass-panel" style="padding: 1.2rem; border-radius: 12px;">
-      <div class="week-navigation">
-        <button id="btn-prev-week" class="btn btn-secondary btn-sm">&larr; Previous Week</button>
-        <div class="current-week-label" id="current-week-label">Week of June 8, 2026</div>
-        <button id="btn-next-week" class="btn btn-secondary btn-sm">Next Week &rarr;</button>
-      </div>
-      <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Your Target Daily Calories:</span>
-        <span id="calorie-target-display" class="diet-badge" style="font-size: 0.85rem;">2000 kcal</span>
-      </div>
+    <section class="mealplan-summary-cards">
+      <article class="summary-card">
+        <span class="summary-card-title">Daily Goal</span>
+        <div class="summary-card-value" id="summary-calorie-goal">2,150 kcal</div>
+        <div class="summary-card-progress">
+          <div class="summary-card-fill"></div>
+        </div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-card-title">Carbs (P1)</span>
+        <div class="summary-card-value" id="summary-carbs">185g</div>
+        <div class="summary-card-progress">
+          <div class="summary-card-fill" id="summary-carbs-fill"></div>
+        </div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-card-title">Fats (S2)</span>
+        <div class="summary-card-value" id="summary-fats">62g</div>
+        <div class="summary-card-progress">
+          <div class="summary-card-fill" id="summary-fats-fill" style="width: 45%;"></div>
+        </div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-card-title">Protein (C)</span>
+        <div class="summary-card-value" id="summary-protein">110g</div>
+        <div class="summary-card-progress">
+          <div class="summary-card-fill" id="summary-protein-fill" style="width: 56%;"></div>
+        </div>
+      </article>
     </section>
 
-    <!-- Weekly planner items -->
-    <section class="mealplan-weekly-grid" id="mealplan-weekly-grid">
-      <!-- Generated dynamically by app.js (7 day panels) -->
-      <div class="skeleton-card" style="height: 200px;"></div>
-      <div class="skeleton-card" style="height: 200px;"></div>
-    </section>
+    <div class="mealplan-page-layout">
+      <div>
+        <!-- Controls for date shifting -->
+        <section class="meal-controls glass-panel" style="padding: 1.2rem; border-radius: 12px;">
+          <div class="week-navigation">
+            <button id="btn-prev-week" class="btn btn-secondary btn-sm">&larr; Previous Week</button>
+            <div class="current-week-label" id="current-week-label">Week of June 8, 2026</div>
+            <button id="btn-next-week" class="btn btn-secondary btn-sm">Next Week &rarr;</button>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--on-surface-variant);">Your Target Daily
+              Calories:</span>
+            <span id="calorie-target-display" class="diet-badge" style="font-size: 0.85rem;">2000 kcal</span>
+          </div>
+        </section>
+
+        <!-- Weekly planner items -->
+        <section class="mealplan-weekly-grid" id="mealplan-weekly-grid">
+          <!-- Generated dynamically by app.js (7 day panels) -->
+          <div class="skeleton-card" style="height: 200px;"></div>
+          <div class="skeleton-card" style="height: 200px;"></div>
+        </section>
+      </div>
+
+      <aside class="mealplan-aside">
+        <section class="recommendation-panel">
+          <h3>Recommendations</h3>
+          <div class="recommendation-list">
+            <article class="recommendation-card">
+              <span>Balanced lunch idea</span>
+              <h4>Greek Power Salad</h4>
+              <span>4.8 • 15 min</span>
+            </article>
+            <article class="recommendation-card">
+              <span>Fresh dinner idea</span>
+              <h4>Fresh Tuna Poke</h4>
+              <span>4.9 • 10 min</span>
+            </article>
+            <article class="recommendation-card">
+              <span>Chef favorite</span>
+              <h4>Crispy Lemon Salmon</h4>
+              <span>4.7 • 25 min</span>
+            </article>
+          </div>
+          <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;">Discover More Recipes</button>
+        </section>
+
+        <section class="shopping-preview-panel">
+          <h3>Shopping List Preview</h3>
+          <div class="preview-list">
+            <div style="display: flex; justify-content: space-between; gap: 0.5rem;"><span>Fresh
+                Avocados</span><strong>3x</strong></div>
+            <div style="display: flex; justify-content: space-between; gap: 0.5rem;"><span>Organic
+                Quinoa</span><strong>500g</strong></div>
+            <div style="display: flex; justify-content: space-between; gap: 0.5rem;"><span>Salmon
+                Fillets</span><strong>2x</strong></div>
+            <div style="display: flex; justify-content: space-between; gap: 0.5rem;"><span>…and 12 more items</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">View Full List</button>
+        </section>
+      </aside>
+    </div>
   </main>
 
   <!-- Custom Add Meal Modal -->
@@ -73,16 +156,17 @@
         <form id="custom-meal-form">
           <input type="hidden" id="custom-meal-date">
           <input type="hidden" id="custom-meal-slot">
-          
+
           <div class="form-group">
             <label class="form-label" for="custom-meal-name">Meal Item Name</label>
-            <input type="text" id="custom-meal-name" class="form-input" placeholder="e.g. Scrambled Eggs with Spinach" required>
+            <input type="text" id="custom-meal-name" class="form-input" placeholder="e.g. Scrambled Eggs with Spinach"
+              required>
           </div>
           <div class="form-group">
             <label class="form-label" for="custom-meal-calories">Calories (kcal)</label>
             <input type="number" id="custom-meal-calories" class="form-input" placeholder="e.g. 240" min="0" required>
           </div>
-          
+
           <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
             Add to Meal Plan
           </button>
@@ -101,4 +185,5 @@
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>

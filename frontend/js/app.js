@@ -6,9 +6,9 @@ const App = {
 
   init() {
     this.loadCommonData();
-    
+
     const page = window.location.pathname.split('/').pop() || 'index.html';
-    
+
     if (page === 'recipes.html') {
       this.initRecipesPage();
     } else if (page === 'mealplan.html') {
@@ -43,7 +43,7 @@ const App = {
     const btnCloseDetails = document.getElementById('btn-close-details');
 
     if (searchForm) {
-      searchForm.addEventListener('submit', async (e) => {
+      searchForm.addEventListener('submit', async e => {
         e.preventDefault();
         const query = document.getElementById('query-input').value;
         const diet = document.getElementById('diet-select').value;
@@ -66,14 +66,18 @@ const App = {
       });
 
       // Trigger default search on load
-      searchForm.querySelector('button[type="submit"]').click();
+      const defaultSearchQuery = 'healthy';
+      document.getElementById('query-input').value = defaultSearchQuery;
+      searchForm.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }),
+      );
     }
 
     if (btnCloseDetails) {
       btnCloseDetails.addEventListener('click', () => {
         detailsModal.classList.remove('active');
       });
-      detailsModal.addEventListener('click', (e) => {
+      detailsModal.addEventListener('click', e => {
         if (e.target === detailsModal) detailsModal.classList.remove('active');
       });
     }
@@ -90,9 +94,10 @@ const App = {
       return;
     }
 
-    container.innerHTML = recipes.map(recipe => {
-      const isSaved = this.savedRecipesList.includes(recipe.id);
-      return `
+    container.innerHTML = recipes
+      .map(recipe => {
+        const isSaved = this.savedRecipesList.includes(recipe.id);
+        return `
         <article class="recipe-card glass-panel" data-id="${recipe.id}">
           <div class="recipe-image-wrapper">
             <img class="recipe-image" src="${recipe.image || 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&auto=format&fit=crop&q=80'}" alt="${recipe.title}" loading="lazy">
@@ -100,10 +105,10 @@ const App = {
               ❤️
             </button>
           </div>
-          
+
           <div class="recipe-content" style="cursor: pointer;" onclick="window.App.openRecipeDetails(${recipe.id})">
             <h4 class="recipe-title">${recipe.title}</h4>
-            
+
             <div class="recipe-meta">
               <span>⏱️ ${recipe.readyInMinutes || 15} mins</span>
               <span>👥 ${recipe.servings || 1} serv</span>
@@ -116,7 +121,8 @@ const App = {
           </div>
         </article>
       `;
-    }).join('');
+      })
+      .join('');
   },
 
   async toggleSaveRecipe(spoonacularId, buttonEl) {
@@ -132,11 +138,15 @@ const App = {
       if (isCurrentlySaved) {
         // Find cached recipe database ID by matching spoonacularId
         const savedRes = await window.API.recipes.getSaved();
-        const fullRecipeObj = savedRes.data.find(r => r.spoonacularId === spoonacularId);
+        const fullRecipeObj = savedRes.data.find(
+          r => r.spoonacularId === spoonacularId,
+        );
         if (fullRecipeObj) {
           await window.API.recipes.unsave(fullRecipeObj._id);
           buttonEl.classList.remove('saved');
-          this.savedRecipesList = this.savedRecipesList.filter(id => id !== spoonacularId);
+          this.savedRecipesList = this.savedRecipesList.filter(
+            id => id !== spoonacularId,
+          );
           window.API.showToast('Removed from favorites.');
         }
       } else {
@@ -170,14 +180,22 @@ const App = {
       const res = await window.API.recipes.getDetails(spoonacularId);
       if (res.success) {
         const r = res.recipe;
-        
+
         // Build ingredients bullet list
-        const ingredientsHtml = r.extendedIngredients.map(i => `<li>${i.originalString || `${i.amount} ${i.unit} ${i.name}`}</li>`).join('');
-        
+        const ingredientsHtml = r.extendedIngredients
+          .map(
+            i =>
+              `<li>${i.originalString || `${i.amount} ${i.unit} ${i.name}`}</li>`,
+          )
+          .join('');
+
         // Build instructions list
-        const instructionsHtml = r.analyzedInstructions.length > 0
-          ? r.analyzedInstructions.map(s => `<li>${s.instruction}</li>`).join('')
-          : '<li>No structured instructions available. Refer to source URL.</li>';
+        const instructionsHtml =
+          r.analyzedInstructions.length > 0
+            ? r.analyzedInstructions
+                .map(s => `<li>${s.instruction}</li>`)
+                .join('')
+            : '<li>No structured instructions available. Refer to source URL.</li>';
 
         // Check if logged in to show add-to-meal-plan scheduler option
         let mealPlanFormHtml = '';
@@ -188,8 +206,14 @@ const App = {
             const date = new Date();
             date.setDate(date.getDate() + i);
             const dateStr = date.toISOString().split('T')[0];
-            const dateLabel = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            dateOptions.push(`<option value="${dateStr}">${dateLabel}</option>`);
+            const dateLabel = date.toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            dateOptions.push(
+              `<option value="${dateStr}">${dateLabel}</option>`,
+            );
           }
 
           mealPlanFormHtml = `
@@ -255,14 +279,14 @@ const App = {
               </ol>
             </div>
           </div>
-          
+
           ${mealPlanFormHtml}
         `;
 
         // Add event listener to form if present
         const addForm = document.getElementById('modal-add-meal-form');
         if (addForm) {
-          addForm.addEventListener('submit', async (e) => {
+          addForm.addEventListener('submit', async e => {
             e.preventDefault();
             const dateStr = document.getElementById('sched-date').value;
             const slot = document.getElementById('sched-slot').value;
@@ -273,18 +297,26 @@ const App = {
               const plan = getPlanRes.data;
 
               // Ensure arrays exist
-              if (!plan.meals) plan.meals = { breakfast: [], lunch: [], dinner: [], snack: [] };
+              if (!plan.meals)
+                plan.meals = {
+                  breakfast: [],
+                  lunch: [],
+                  dinner: [],
+                  snack: [],
+                };
               if (!plan.meals[slot]) plan.meals[slot] = [];
 
               // Add current recipe reference
               plan.meals[slot].push({
                 recipe: r._id, // Must be database ID
-                calories: r.nutrition?.calories || 0
+                calories: r.nutrition?.calories || 0,
               });
 
               // 2. Save/Update meal plan
               await window.API.mealPlans.update(dateStr, plan.meals);
-              window.API.showToast(`Recipe added to ${slot.toUpperCase()} for ${dateStr}!`);
+              window.API.showToast(
+                `Recipe added to ${slot.toUpperCase()} for ${dateStr}!`,
+              );
               detailsModal.classList.remove('active');
             } catch (err) {
               console.error(err);
@@ -316,59 +348,72 @@ const App = {
       this.loadWeeklyMeals();
     });
 
-    document.getElementById('btn-clear-week').addEventListener('click', async () => {
-      if (confirm('Are you sure you want to clear this entire week\'s meal schedule?')) {
-        const datesOfWeek = this.getDatesOfWeek(this.currentDateRef);
-        try {
-          for (let dateStr of datesOfWeek) {
-            await window.API.mealPlans.delete(dateStr);
+    document
+      .getElementById('btn-clear-week')
+      .addEventListener('click', async () => {
+        if (
+          confirm(
+            "Are you sure you want to clear this entire week's meal schedule?",
+          )
+        ) {
+          const datesOfWeek = this.getDatesOfWeek(this.currentDateRef);
+          try {
+            for (let dateStr of datesOfWeek) {
+              await window.API.mealPlans.delete(dateStr);
+            }
+            window.API.showToast('Week cleared successfully!');
+            this.loadWeeklyMeals();
+          } catch (err) {
+            console.error(err);
           }
-          window.API.showToast('Week cleared successfully!');
+        }
+      });
+
+    // Close Custom Meal Modal
+    const customModal = document.getElementById('add-custom-meal-modal');
+    document
+      .getElementById('btn-close-custom-modal')
+      .addEventListener('click', () => {
+        customModal.classList.remove('active');
+      });
+
+    // Handle Custom Meal Form Submission
+    document
+      .getElementById('custom-meal-form')
+      .addEventListener('submit', async e => {
+        e.preventDefault();
+        const dateStr = document.getElementById('custom-meal-date').value;
+        const slot = document.getElementById('custom-meal-slot').value;
+        const name = document.getElementById('custom-meal-name').value;
+        const cals = Number(
+          document.getElementById('custom-meal-calories').value,
+        );
+
+        try {
+          const getPlanRes = await window.API.mealPlans.getByDate(dateStr);
+          const plan = getPlanRes.data;
+
+          if (!plan.meals)
+            plan.meals = { breakfast: [], lunch: [], dinner: [], snack: [] };
+          if (!plan.meals[slot]) plan.meals[slot] = [];
+
+          plan.meals[slot].push({
+            customMealName: name,
+            calories: cals,
+          });
+
+          await window.API.mealPlans.update(dateStr, plan.meals);
+          window.API.showToast(`Custom item added to ${slot.toUpperCase()}!`);
+          customModal.classList.remove('active');
+
+          // Reset form
+          document.getElementById('custom-meal-form').reset();
+
           this.loadWeeklyMeals();
         } catch (err) {
           console.error(err);
         }
-      }
-    });
-
-    // Close Custom Meal Modal
-    const customModal = document.getElementById('add-custom-meal-modal');
-    document.getElementById('btn-close-custom-modal').addEventListener('click', () => {
-      customModal.classList.remove('active');
-    });
-
-    // Handle Custom Meal Form Submission
-    document.getElementById('custom-meal-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const dateStr = document.getElementById('custom-meal-date').value;
-      const slot = document.getElementById('custom-meal-slot').value;
-      const name = document.getElementById('custom-meal-name').value;
-      const cals = Number(document.getElementById('custom-meal-calories').value);
-
-      try {
-        const getPlanRes = await window.API.mealPlans.getByDate(dateStr);
-        const plan = getPlanRes.data;
-
-        if (!plan.meals) plan.meals = { breakfast: [], lunch: [], dinner: [], snack: [] };
-        if (!plan.meals[slot]) plan.meals[slot] = [];
-
-        plan.meals[slot].push({
-          customMealName: name,
-          calories: cals
-        });
-
-        await window.API.mealPlans.update(dateStr, plan.meals);
-        window.API.showToast(`Custom item added to ${slot.toUpperCase()}!`);
-        customModal.classList.remove('active');
-        
-        // Reset form
-        document.getElementById('custom-meal-form').reset();
-        
-        this.loadWeeklyMeals();
-      } catch (err) {
-        console.error(err);
-      }
-    });
+      });
   },
 
   // Get date strings for Monday–Sunday of the week containing the ref date
@@ -376,7 +421,7 @@ const App = {
     const currentDay = refDate.getDay();
     // Calculate difference to Monday (if Sunday (0), shift to -6)
     const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-    
+
     const monday = new Date(refDate);
     monday.setDate(refDate.getDate() + distanceToMonday);
 
@@ -391,16 +436,61 @@ const App = {
 
   setupMealDates() {
     const dates = this.getDatesOfWeek(this.currentDateRef);
-    
+
     // Format week title label (e.g. "Week of Jun 8, 2026")
     const startOfWeek = new Date(dates[0] + 'T00:00:00');
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
-    document.getElementById('current-week-label').textContent = `Week of ${startOfWeek.toLocaleDateString('en-US', options)}`;
+    document.getElementById('current-week-label').textContent =
+      `Week of ${startOfWeek.toLocaleDateString('en-US', options)}`;
 
     // Set calorie limit display based on user profile preferences
     const user = window.Auth.getUser();
     if (user && user.preferences) {
-      document.getElementById('calorie-target-display').textContent = `${user.preferences.calorieGoal || 2000} kcal`;
+      document.getElementById('calorie-target-display').textContent =
+        `${user.preferences.calorieGoal || 2000} kcal`;
+      const calorieGoalCard = document.getElementById('summary-calorie-goal');
+      if (calorieGoalCard) {
+        calorieGoalCard.textContent = `${user.preferences.calorieGoal || 2000} kcal`;
+      }
+      const carbsCard = document.getElementById('summary-carbs');
+      if (carbsCard) {
+        carbsCard.textContent = `${user.preferences.carbsGoal || 250}g`;
+      }
+      const fatsCard = document.getElementById('summary-fats');
+      if (fatsCard) {
+        fatsCard.textContent = `${user.preferences.fatGoal || 70}g`;
+      }
+      const proteinCard = document.getElementById('summary-protein');
+      if (proteinCard) {
+        proteinCard.textContent = `${user.preferences.proteinGoal || 100}g`;
+      }
+
+      const formatFill = (value, max) => {
+        if (!max || max === 0) return '100%';
+        return `${Math.min(100, Math.round((value / max) * 100))}%`;
+      };
+
+      const carbsFill = document.getElementById('summary-carbs-fill');
+      if (carbsFill) {
+        carbsFill.style.width = formatFill(
+          user.preferences.carbsGoal || 250,
+          user.preferences.carbsGoal || 250,
+        );
+      }
+      const fatsFill = document.getElementById('summary-fats-fill');
+      if (fatsFill) {
+        fatsFill.style.width = formatFill(
+          user.preferences.fatGoal || 70,
+          user.preferences.fatGoal || 70,
+        );
+      }
+      const proteinFill = document.getElementById('summary-protein-fill');
+      if (proteinFill) {
+        proteinFill.style.width = formatFill(
+          user.preferences.proteinGoal || 100,
+          user.preferences.proteinGoal || 100,
+        );
+      }
     }
   },
 
@@ -414,7 +504,15 @@ const App = {
     `;
 
     const dates = this.getDatesOfWeek(this.currentDateRef);
-    const daysOfWeekNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const daysOfWeekNames = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     const user = window.Auth.getUser();
     const calorieGoal = user?.preferences?.calorieGoal || 2000;
 
@@ -434,9 +532,13 @@ const App = {
       for (let i = 0; i < 7; i++) {
         const dateStr = dates[i];
         const dayLabel = daysOfWeekNames[i];
-        const formattedDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        
-        const plan = planByDateMap[dateStr] || { meals: { breakfast: [], lunch: [], dinner: [], snack: [] } };
+        const formattedDate = new Date(
+          dateStr + 'T00:00:00',
+        ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        const plan = planByDateMap[dateStr] || {
+          meals: { breakfast: [], lunch: [], dinner: [], snack: [] },
+        };
         const meals = plan.meals;
 
         // Calculate total daily calories
@@ -452,20 +554,25 @@ const App = {
 
         // Stylize warning badge if daily calories exceed goal
         const isOverLimit = totalCals > calorieGoal;
-        const calLabelClass = isOverLimit ? 'background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); border: 1px solid var(--accent-rose);' : 'background: rgba(6, 182, 212, 0.1);';
+        const calLabelClass = isOverLimit
+          ? 'background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); border: 1px solid var(--accent-rose);'
+          : 'background: rgba(6, 182, 212, 0.1);';
 
         // Function to build lists for each slot
-        const buildSlotHtml = (slotName) => {
+        const buildSlotHtml = slotName => {
           const items = meals[slotName] || [];
           let itemsHtml = '';
 
           if (items.length === 0) {
             itemsHtml = `<span style="font-size:0.75rem; color:var(--text-muted);">Empty</span>`;
           } else {
-            itemsHtml = items.map((item, idx) => {
-              const name = item.recipe ? item.recipe.title : item.customMealName;
-              const itemId = item._id;
-              return `
+            itemsHtml = items
+              .map((item, idx) => {
+                const name = item.recipe
+                  ? item.recipe.title
+                  : item.customMealName;
+                const itemId = item._id;
+                return `
                 <div class="meal-item">
                   <div class="meal-item-details">
                     <span class="meal-item-name" title="${name}">${name}</span>
@@ -474,7 +581,8 @@ const App = {
                   <button class="btn-remove-meal-item" onclick="window.App.deleteMealPlanItem('${dateStr}', '${slotName}', '${itemId}')">&times;</button>
                 </div>
               `;
-            }).join('');
+              })
+              .join('');
           }
 
           return `
@@ -499,7 +607,7 @@ const App = {
                 Daily Calories: <span>${totalCals}</span> / ${calorieGoal} kcal
               </div>
             </div>
-            
+
             <div class="meals-layout">
               ${buildSlotHtml('breakfast')}
               ${buildSlotHtml('lunch')}
@@ -511,7 +619,6 @@ const App = {
       }
 
       container.innerHTML = weeklyHtml;
-
     } catch (err) {
       container.innerHTML = `<p style="color:var(--accent-rose); text-align:center;">Could not load meal plans. Please reload page.</p>`;
     }
@@ -533,7 +640,9 @@ const App = {
 
       if (plan.meals && plan.meals[slotName]) {
         // Filter out item by database object ID
-        plan.meals[slotName] = plan.meals[slotName].filter(item => item._id.toString() !== itemId);
+        plan.meals[slotName] = plan.meals[slotName].filter(
+          item => item._id.toString() !== itemId,
+        );
 
         await window.API.mealPlans.update(dateStr, plan.meals);
         window.API.showToast('Meal removed.');
@@ -553,7 +662,7 @@ const App = {
     // Bind manually add form
     const addForm = document.getElementById('shopping-add-form');
     if (addForm) {
-      addForm.addEventListener('submit', async (e) => {
+      addForm.addEventListener('submit', async e => {
         e.preventDefault();
         const name = document.getElementById('item-name').value;
         const quantity = Number(document.getElementById('item-qty').value);
@@ -573,32 +682,36 @@ const App = {
     }
 
     // Clear completed items button
-    document.getElementById('btn-clear-completed').addEventListener('click', async () => {
-      try {
-        await window.API.shoppingList.clearCompleted();
-        window.API.showToast('Checked items cleared.');
-        this.loadShoppingList();
-      } catch (err) {
-        console.error(err);
-      }
-    });
+    document
+      .getElementById('btn-clear-completed')
+      .addEventListener('click', async () => {
+        try {
+          await window.API.shoppingList.clearCompleted();
+          window.API.showToast('Checked items cleared.');
+          this.loadShoppingList();
+        } catch (err) {
+          console.error(err);
+        }
+      });
 
     // Auto-generate items button
-    document.getElementById('btn-generate-list').addEventListener('click', async () => {
-      const btn = document.getElementById('btn-generate-list');
-      btn.disabled = true;
-      btn.textContent = 'Generating...';
-      try {
-        const res = await window.API.shoppingList.generate();
-        window.API.showToast(res.message);
-        this.loadShoppingList();
-      } catch (err) {
-        console.error(err);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '🛒 Auto-Generate from Plan';
-      }
-    });
+    document
+      .getElementById('btn-generate-list')
+      .addEventListener('click', async () => {
+        const btn = document.getElementById('btn-generate-list');
+        btn.disabled = true;
+        btn.textContent = 'Generating...';
+        try {
+          const res = await window.API.shoppingList.generate();
+          window.API.showToast(res.message);
+          this.loadShoppingList();
+        } catch (err) {
+          console.error(err);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '🛒 Auto-Generate from Plan';
+        }
+      });
   },
 
   async loadShoppingList() {
@@ -634,9 +747,10 @@ const App = {
 
       catList.forEach(cat => {
         const items = categoriesMap[cat];
-        
-        const itemsRowsHtml = items.map(item => {
-          return `
+
+        const itemsRowsHtml = items
+          .map(item => {
+            return `
             <div class="shopping-item-row ${item.completed ? 'completed' : ''}" data-id="${item._id}">
               <div class="shopping-item-left">
                 <input type="checkbox" class="shopping-checkbox-custom" ${item.completed ? 'checked' : ''} onchange="window.App.toggleShoppingItem('${item._id}', this.checked)">
@@ -648,7 +762,8 @@ const App = {
               </div>
             </div>
           `;
-        }).join('');
+          })
+          .join('');
 
         listHtml += `
           <div class="shopping-category-group">
@@ -661,7 +776,6 @@ const App = {
       });
 
       container.innerHTML = listHtml;
-
     } catch (err) {
       container.innerHTML = `<p style="color:var(--accent-rose); text-align:center;">Could not load shopping list items.</p>`;
     }
@@ -695,65 +809,88 @@ const App = {
     this.loadProfileData();
 
     // Goal form submission
-    document.getElementById('preferences-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const diet = document.getElementById('pref-diet').value;
-      const calorieGoal = Number(document.getElementById('pref-calories').value);
-      const proteinGoal = Number(document.getElementById('pref-protein').value);
-      const carbsGoal = Number(document.getElementById('pref-carbs').value);
-      const fatGoal = Number(document.getElementById('pref-fat').value);
+    document
+      .getElementById('preferences-form')
+      .addEventListener('submit', async e => {
+        e.preventDefault();
+        const diet = document.getElementById('pref-diet').value;
+        const calorieGoal = Number(
+          document.getElementById('pref-calories').value,
+        );
+        const proteinGoal = Number(
+          document.getElementById('pref-protein').value,
+        );
+        const carbsGoal = Number(document.getElementById('pref-carbs').value);
+        const fatGoal = Number(document.getElementById('pref-fat').value);
 
-      try {
-        const res = await window.API.auth.updatePreferences({
-          diet,
-          calorieGoal,
-          proteinGoal,
-          carbsGoal,
-          fatGoal
-        });
-        if (res.success) {
-          window.API.showToast('Goal preferences updated successfully!');
-          // Update local storage user details
-          const currentUser = window.Auth.getUser();
-          currentUser.preferences = res.data.preferences;
-          localStorage.setItem(window.Auth.userKey, JSON.stringify(currentUser));
-          
-          this.loadProfileData();
+        try {
+          const res = await window.API.auth.updatePreferences({
+            diet,
+            calorieGoal,
+            proteinGoal,
+            carbsGoal,
+            fatGoal,
+          });
+          if (res.success) {
+            window.API.showToast('Goal preferences updated successfully!');
+            // Update local storage user details
+            const currentUser = window.Auth.getUser();
+            currentUser.preferences = res.data.preferences;
+            localStorage.setItem(
+              window.Auth.userKey,
+              JSON.stringify(currentUser),
+            );
+
+            this.loadProfileData();
+          }
+        } catch (err) {
+          console.error(err);
         }
-      } catch (err) {
-        console.error(err);
-      }
-    });
+      });
 
     // Custom recipe creator toggler
     const recipeForm = document.getElementById('custom-recipe-form');
-    document.getElementById('btn-show-recipe-creator').addEventListener('click', () => {
-      recipeForm.style.display = 'block';
-    });
-    document.getElementById('btn-cancel-recipe-creator').addEventListener('click', () => {
-      recipeForm.style.display = 'none';
-      recipeForm.reset();
-    });
+    document
+      .getElementById('btn-show-recipe-creator')
+      .addEventListener('click', () => {
+        recipeForm.style.display = 'block';
+      });
+    document
+      .getElementById('btn-cancel-recipe-creator')
+      .addEventListener('click', () => {
+        recipeForm.style.display = 'none';
+        recipeForm.reset();
+      });
 
     // Custom recipe form save
-    recipeForm.addEventListener('submit', async (e) => {
+    recipeForm.addEventListener('submit', async e => {
       e.preventDefault();
       const title = document.getElementById('custom-recipe-title').value;
       const time = Number(document.getElementById('custom-recipe-time').value);
-      const servings = Number(document.getElementById('custom-recipe-servings').value);
+      const servings = Number(
+        document.getElementById('custom-recipe-servings').value,
+      );
       const ingRaw = document.getElementById('custom-recipe-ingredients').value;
-      const instRaw = document.getElementById('custom-recipe-instructions').value;
-      const cals = Number(document.getElementById('custom-recipe-calories').value);
-      const prot = Number(document.getElementById('custom-recipe-protein').value);
+      const instRaw = document.getElementById(
+        'custom-recipe-instructions',
+      ).value;
+      const cals = Number(
+        document.getElementById('custom-recipe-calories').value,
+      );
+      const prot = Number(
+        document.getElementById('custom-recipe-protein').value,
+      );
 
       // Parse ingredients into array
-      const ingredients = ingRaw.split('\n')
+      const ingredients = ingRaw
+        .split('\n')
         .map(line => line.trim())
         .filter(line => line.length > 0)
         .map(line => ({ name: line, originalString: line }));
 
       // Parse instructions into step list
-      const instructions = instRaw.split('\n')
+      const instructions = instRaw
+        .split('\n')
         .map(line => line.trim())
         .filter(line => line.length > 0)
         .map((line, index) => ({ step: index + 1, instruction: line }));
@@ -769,8 +906,8 @@ const App = {
             calories: cals,
             protein: `${prot}g`,
             carbs: '0g', // default fallback placeholder
-            fat: '0g'
-          }
+            fat: '0g',
+          },
         });
         window.API.showToast('Custom recipe created successfully!');
         recipeForm.style.display = 'none';
@@ -784,7 +921,7 @@ const App = {
     // USDA database search form
     const usdaSearchForm = document.getElementById('usda-search-form');
     if (usdaSearchForm) {
-      usdaSearchForm.addEventListener('submit', async (e) => {
+      usdaSearchForm.addEventListener('submit', async e => {
         e.preventDefault();
         const query = document.getElementById('usda-query').value;
         const resultsList = document.getElementById('usda-results-list');
@@ -804,37 +941,46 @@ const App = {
 
     // Close USDA modal
     const usdaModal = document.getElementById('usda-adder-modal');
-    document.getElementById('btn-close-usda-modal').addEventListener('click', () => {
-      usdaModal.classList.remove('active');
-    });
+    document
+      .getElementById('btn-close-usda-modal')
+      .addEventListener('click', () => {
+        usdaModal.classList.remove('active');
+      });
 
     // Log USDA item form submission
-    document.getElementById('usda-adder-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const dateStr = document.getElementById('usda-log-date').value;
-      const slot = document.getElementById('usda-log-slot').value;
-      const name = document.getElementById('usda-adder-name').value;
-      const cals = Number(document.getElementById('usda-adder-calories').value);
+    document
+      .getElementById('usda-adder-form')
+      .addEventListener('submit', async e => {
+        e.preventDefault();
+        const dateStr = document.getElementById('usda-log-date').value;
+        const slot = document.getElementById('usda-log-slot').value;
+        const name = document.getElementById('usda-adder-name').value;
+        const cals = Number(
+          document.getElementById('usda-adder-calories').value,
+        );
 
-      try {
-        const getPlanRes = await window.API.mealPlans.getByDate(dateStr);
-        const plan = getPlanRes.data;
+        try {
+          const getPlanRes = await window.API.mealPlans.getByDate(dateStr);
+          const plan = getPlanRes.data;
 
-        if (!plan.meals) plan.meals = { breakfast: [], lunch: [], dinner: [], snack: [] };
-        if (!plan.meals[slot]) plan.meals[slot] = [];
+          if (!plan.meals)
+            plan.meals = { breakfast: [], lunch: [], dinner: [], snack: [] };
+          if (!plan.meals[slot]) plan.meals[slot] = [];
 
-        plan.meals[slot].push({
-          customMealName: `[USDA] ${name}`,
-          calories: cals
-        });
+          plan.meals[slot].push({
+            customMealName: `[USDA] ${name}`,
+            calories: cals,
+          });
 
-        await window.API.mealPlans.update(dateStr, plan.meals);
-        window.API.showToast(`Logged ${name} to ${slot.toUpperCase()} on ${dateStr}!`);
-        usdaModal.classList.remove('active');
-      } catch (err) {
-        console.error(err);
-      }
-    });
+          await window.API.mealPlans.update(dateStr, plan.meals);
+          window.API.showToast(
+            `Logged ${name} to ${slot.toUpperCase()} on ${dateStr}!`,
+          );
+          usdaModal.classList.remove('active');
+        } catch (err) {
+          console.error(err);
+        }
+      });
   },
 
   setupProfileTabs() {
@@ -864,15 +1010,20 @@ const App = {
     // Set side panel values
     document.getElementById('profile-username').textContent = user.username;
     document.getElementById('profile-email').textContent = user.email;
-    document.getElementById('profile-avatar-initials').textContent = user.username.slice(0, 2).toUpperCase();
+    document.getElementById('profile-avatar-initials').textContent =
+      user.username.slice(0, 2).toUpperCase();
 
     // Populate inputs
     if (user.preferences) {
       document.getElementById('pref-diet').value = user.preferences.diet || '';
-      document.getElementById('pref-calories').value = user.preferences.calorieGoal || 2000;
-      document.getElementById('pref-protein').value = user.preferences.proteinGoal || 100;
-      document.getElementById('pref-carbs').value = user.preferences.carbsGoal || 250;
-      document.getElementById('pref-fat').value = user.preferences.fatGoal || 70;
+      document.getElementById('pref-calories').value =
+        user.preferences.calorieGoal || 2000;
+      document.getElementById('pref-protein').value =
+        user.preferences.proteinGoal || 100;
+      document.getElementById('pref-carbs').value =
+        user.preferences.carbsGoal || 250;
+      document.getElementById('pref-fat').value =
+        user.preferences.fatGoal || 70;
     }
 
     try {
@@ -880,11 +1031,15 @@ const App = {
       const profileRes = await window.API.auth.getProfile();
       if (profileRes.success) {
         const u = profileRes.data;
-        document.getElementById('stat-saved-count').textContent = u.savedRecipes ? u.savedRecipes.length : 0;
-        
+        document.getElementById('stat-saved-count').textContent = u.savedRecipes
+          ? u.savedRecipes.length
+          : 0;
+
         // Count total unique meal plan days logged
         const plansRes = await window.API.mealPlans.getAll();
-        document.getElementById('stat-days-count').textContent = plansRes.data ? plansRes.data.length : 0;
+        document.getElementById('stat-days-count').textContent = plansRes.data
+          ? plansRes.data.length
+          : 0;
 
         // Render saved/custom recipes grid
         const grid = document.getElementById('custom-recipes-list');
@@ -893,8 +1048,9 @@ const App = {
           if (savedRecipes.length === 0) {
             grid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; text-align: center;">No recipes saved yet.</p>`;
           } else {
-            grid.innerHTML = savedRecipes.map(r => {
-              return `
+            grid.innerHTML = savedRecipes
+              .map(r => {
+                return `
                 <article class="recipe-card glass-panel" style="padding: 1.2rem; display: flex; flex-direction: column; gap: 0.5rem;">
                   <h4 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700;">${r.title}</h4>
                   <span style="font-size: 0.8rem; color: var(--text-muted);">🔥 ${r.nutrition?.calories || 0} kcal | ⏱️ ${r.readyInMinutes || 15} mins</span>
@@ -904,7 +1060,8 @@ const App = {
                   </div>
                 </article>
               `;
-            }).join('');
+              })
+              .join('');
           }
         }
       }
@@ -929,19 +1086,20 @@ const App = {
       return;
     }
 
-    container.innerHTML = foods.map(food => {
-      const nut = food.nutrition;
-      return `
+    container.innerHTML = foods
+      .map(food => {
+        const nut = food.nutrition;
+        return `
         <article class="recipe-card glass-panel" style="padding: 1.2rem; display: flex; flex-direction: column; gap: 0.6rem;">
           <span style="font-size: 0.7rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase;">${food.brandOwner}</span>
           <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${food.description}">${food.description}</h4>
-          
+
           <div class="recipe-macros" style="border-top: none; padding-top: 0; margin-top: 0.2rem; text-align: left;">
             <div class="macro-item"><span class="macro-val">${nut.calories} kcal</span><span>Calories</span></div>
             <div class="macro-item"><span class="macro-val">${nut.protein}g</span><span>Protein</span></div>
             <div class="macro-item"><span class="macro-val">${nut.carbs}g</span><span>Carbs</span></div>
           </div>
-          
+
           <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: auto;">
             Serving: ${food.servingSize} ${food.servingSizeUnit}
           </div>
@@ -951,7 +1109,8 @@ const App = {
           </button>
         </article>
       `;
-    }).join('');
+      })
+      .join('');
   },
 
   openUSDALogger(fdcId, name, calories, protein, carbs) {
@@ -961,15 +1120,17 @@ const App = {
     document.getElementById('usda-adder-fdcId').value = fdcId;
     document.getElementById('usda-adder-name').value = name;
     document.getElementById('usda-adder-calories').value = calories;
-    
-    // Set typical date picker default value to today
-    document.getElementById('usda-log-date').value = new Date().toISOString().split('T')[0];
 
-    document.getElementById('usda-adder-summary').textContent = 
+    // Set typical date picker default value to today
+    document.getElementById('usda-log-date').value = new Date()
+      .toISOString()
+      .split('T')[0];
+
+    document.getElementById('usda-adder-summary').textContent =
       `Logged description: ${name} (${calories} kcal | Protein: ${protein}g | Carbs: ${carbs}g)`;
 
     modal.classList.add('active');
-  }
+  },
 };
 
 // Start application

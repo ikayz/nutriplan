@@ -42,7 +42,11 @@ const Auth = {
 
   // Redirect users away from protected pages if not authenticated
   guardProtectedPages() {
-    const protectedPages = ['mealplan.html', 'shoppinglist.html', 'profile.html'];
+    const protectedPages = [
+      'mealplan.html',
+      'shoppinglist.html',
+      'profile.html',
+    ];
     const currentPage = window.location.pathname.split('/').pop();
 
     if (protectedPages.includes(currentPage) && !this.isLoggedIn()) {
@@ -72,11 +76,11 @@ const Auth = {
         </div>
       `;
 
-      // Enable navigation items for logged in users
+      // Navigation items for logged in users (match DESIGN mockups)
       if (navMenu) {
         navMenu.innerHTML = `
           <li><a href="index.html" class="nav-link">Home</a></li>
-          <li><a href="recipes.html" class="nav-link">Search Recipes</a></li>
+          <li><a href="recipes.html" class="nav-link">Explore</a></li>
           <li><a href="mealplan.html" class="nav-link">Meal Planner</a></li>
           <li><a href="shoppinglist.html" class="nav-link">Shopping List</a></li>
           <li><a href="profile.html" class="nav-link">Profile</a></li>
@@ -84,7 +88,9 @@ const Auth = {
       }
 
       // Add logout event listener
-      document.getElementById('btn-logout').addEventListener('click', () => this.clearAuth());
+      document
+        .getElementById('btn-logout')
+        .addEventListener('click', () => this.clearAuth());
     } else {
       // User is logged out: show login and register buttons
       headerActions.innerHTML = `
@@ -92,21 +98,28 @@ const Auth = {
         <button id="btn-show-register" class="btn btn-primary btn-sm">Sign Up</button>
       `;
 
-      // Limit navigation items
+      // Navigation items for logged out users — show core sections
       if (navMenu) {
         navMenu.innerHTML = `
           <li><a href="index.html" class="nav-link">Home</a></li>
-          <li><a href="recipes.html" class="nav-link">Search Recipes</a></li>
+          <li><a href="recipes.html" class="nav-link">Explore</a></li>
+          <li><a href="mealplan.html" class="nav-link">Meal Planner</a></li>
+          <li><a href="shoppinglist.html" class="nav-link">Shopping List</a></li>
         `;
       }
 
       // Add modal click listeners
-      document.getElementById('btn-show-login').addEventListener('click', () => this.openModal('login-modal'));
-      document.getElementById('btn-show-register').addEventListener('click', () => this.openModal('register-modal'));
+      document
+        .getElementById('btn-show-login')
+        .addEventListener('click', () => this.openModal('login-modal'));
+      document
+        .getElementById('btn-show-register')
+        .addEventListener('click', () => this.openModal('register-modal'));
     }
 
     // Set active class on active link based on current path
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const currentPage =
+      window.location.pathname.split('/').pop() || 'index.html';
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
       if (link.getAttribute('href') === currentPage) {
@@ -147,7 +160,7 @@ const Auth = {
       }
 
       // Close modal on clicking outside container
-      modal.addEventListener('click', (e) => {
+      modal.addEventListener('click', e => {
         if (e.target === modal) {
           this.closeModal(id);
         }
@@ -157,7 +170,7 @@ const Auth = {
     // Handle Login Form Submission
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
+      loginForm.addEventListener('submit', async e => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
@@ -169,10 +182,10 @@ const Auth = {
             this.saveAuth(res.data.token, {
               username: res.data.username,
               email: res.data.email,
-              preferences: res.data.preferences
+              preferences: res.data.preferences,
             });
             this.closeModal('login-modal');
-            
+
             // Redirect to profile or search
             setTimeout(() => {
               window.location.href = 'recipes.html';
@@ -187,12 +200,14 @@ const Auth = {
     // Handle Register Form Submission
     const registerForm = document.getElementById('register-form');
     if (registerForm) {
-      registerForm.addEventListener('submit', async (e) => {
+      registerForm.addEventListener('submit', async e => {
         e.preventDefault();
         const username = document.getElementById('register-username').value;
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
-        const confirmPassword = document.getElementById('register-confirm-password').value;
+        const confirmPassword = document.getElementById(
+          'register-confirm-password',
+        ).value;
 
         if (password !== confirmPassword) {
           window.API.showToast('Passwords do not match', true);
@@ -206,10 +221,10 @@ const Auth = {
             this.saveAuth(res.data.token, {
               username: res.data.username,
               email: res.data.email,
-              preferences: res.data.preferences
+              preferences: res.data.preferences,
             });
             this.closeModal('register-modal');
-            
+
             // Redirect to profile settings to input preferences
             setTimeout(() => {
               window.location.href = 'profile.html';
@@ -296,7 +311,7 @@ const Auth = {
       `;
       document.body.insertAdjacentHTML('beforeend', registerHtml);
     }
-  }
+  },
 };
 
 // Auto-run on load
