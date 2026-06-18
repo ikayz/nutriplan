@@ -132,14 +132,19 @@ const searchFoodNutrition = async (req, res) => {
     const response = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${apiKey}&query=${encodeURIComponent(query)}&pageSize=10`);
     const data = await response.json();
 
+    if (!response.ok || data.error) {
+      throw new Error(data.error?.message || `USDA API returned status ${response.status}`);
+    }
+
     if (!data.foods || data.foods.length === 0) {
       return res.status(200).json({ success: true, source: 'usda-api', results: [] });
     }
 
     const formattedResults = data.foods.map(f => {
       const getNutrient = (id) => {
+        if (!f.foodNutrients || !Array.isArray(f.foodNutrients)) return 0;
         const nut = f.foodNutrients.find(n => n.nutrientId === id || n.nutrientNumber === String(id));
-        return nut ? Number(nut.value) : 0;
+        return nut && typeof nut.value !== 'undefined' && nut.value !== null ? Number(nut.value) : 0;
       };
 
       // USDA typical ids: Calories (1008), Protein (1003), Fat (1004), Carbs (1005)
@@ -198,10 +203,11 @@ const getFoodNutritionDetails = async (req, res) => {
     }
 
     const getNutrient = (nameOrId) => {
+      if (!data.foodNutrients || !Array.isArray(data.foodNutrients)) return 0;
       const nut = data.foodNutrients.find(
         n => n.nutrient?.id === nameOrId || n.nutrient?.name === nameOrId
       );
-      return nut ? Number(nut.amount) : 0;
+      return nut && typeof nut.amount !== 'undefined' && nut.amount !== null ? Number(nut.amount) : 0;
     };
 
     const foodDetails = {

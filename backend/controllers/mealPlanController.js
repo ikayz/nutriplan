@@ -89,11 +89,7 @@ const deleteMealPlan = async (req, res) => {
   try {
     const { date } = req.params;
 
-    const mealPlan = await MealPlan.findOneAndDelete({ user: req.user.id, date });
-
-    if (!mealPlan) {
-      return res.status(404).json({ success: false, message: 'Meal plan not found' });
-    }
+    await MealPlan.findOneAndDelete({ user: req.user.id, date });
 
     res.status(200).json({ success: true, message: 'Meal plan deleted successfully' });
   } catch (error) {

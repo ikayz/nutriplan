@@ -3,6 +3,7 @@
 const App = {
   currentDateRef: new Date(), // Used for meal plan week navigation
   savedRecipesList: [], // Holds array of saved recipe IDs for favorite indicators
+  selectedDate: null, // YYYY-MM-DD string for currently selected day on meal plan page
 
   init() {
     this.loadCommonData();
@@ -310,6 +311,9 @@ const App = {
               plan.meals[slot].push({
                 recipe: r._id, // Must be database ID
                 calories: r.nutrition?.calories || 0,
+                protein: parseFloat(r.nutrition?.protein) || 0,
+                carbs: parseFloat(r.nutrition?.carbs) || 0,
+                fat: parseFloat(r.nutrition?.fat) || 0,
               });
 
               // 2. Save/Update meal plan
@@ -358,13 +362,22 @@ const App = {
         ) {
           const datesOfWeek = this.getDatesOfWeek(this.currentDateRef);
           try {
-            for (let dateStr of datesOfWeek) {
-              await window.API.mealPlans.delete(dateStr);
-            }
+            await Promise.all(
+              datesOfWeek.map(async dateStr => {
+                try {
+                  await window.API.mealPlans.delete(dateStr);
+                } catch (err) {
+                  // Ignore not found errors during batch deletion
+                  if (err.message !== 'Meal plan not found') {
+                    throw err;
+                  }
+                }
+              })
+            );
             window.API.showToast('Week cleared successfully!');
             this.loadWeeklyMeals();
           } catch (err) {
-            console.error(err);
+            console.error('Failed to clear week:', err.message);
           }
         }
       });
@@ -388,6 +401,15 @@ const App = {
         const cals = Number(
           document.getElementById('custom-meal-calories').value,
         );
+        const prot = Number(
+          document.getElementById('custom-meal-protein').value,
+        ) || 0;
+        const carbs = Number(
+          document.getElementById('custom-meal-carbs').value,
+        ) || 0;
+        const fat = Number(
+          document.getElementById('custom-meal-fat').value,
+        ) || 0;
 
         try {
           const getPlanRes = await window.API.mealPlans.getByDate(dateStr);
@@ -400,6 +422,9 @@ const App = {
           plan.meals[slot].push({
             customMealName: name,
             calories: cals,
+            protein: prot,
+            carbs: carbs,
+            fat: fat,
           });
 
           await window.API.mealPlans.update(dateStr, plan.meals);
@@ -414,6 +439,70 @@ const App = {
           console.error(err);
         }
       });
+
+    // Handle Edit Goals modal triggers
+    const btnEditGoals = document.getElementById('btn-edit-goals-mealplan');
+    const goalsModal = document.getElementById('edit-goals-modal');
+    const btnCloseGoals = document.getElementById('btn-close-goals-modal');
+    const goalsForm = document.getElementById('mealplan-goals-form');
+
+    if (btnEditGoals && goalsModal) {
+      btnEditGoals.addEventListener('click', () => {
+        const user = window.Auth.getUser();
+        if (user && user.preferences) {
+          document.getElementById('goals-calories').value = user.preferences.calorieGoal || 2000;
+          document.getElementById('goals-protein').value = user.preferences.proteinGoal || 100;
+          document.getElementById('goals-carbs').value = user.preferences.carbsGoal || 250;
+          document.getElementById('goals-fat').value = user.preferences.fatGoal || 70;
+        }
+        goalsModal.classList.add('active');
+      });
+    }
+
+    if (btnCloseGoals && goalsModal) {
+      btnCloseGoals.addEventListener('click', () => {
+        goalsModal.classList.remove('active');
+      });
+    }
+
+    if (goalsModal) {
+      goalsModal.addEventListener('click', e => {
+        if (e.target === goalsModal) {
+          goalsModal.classList.remove('active');
+        }
+      });
+    }
+
+    if (goalsForm) {
+      goalsForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const calorieGoal = Number(document.getElementById('goals-calories').value);
+        const proteinGoal = Number(document.getElementById('goals-protein').value);
+        const carbsGoal = Number(document.getElementById('goals-carbs').value);
+        const fatGoal = Number(document.getElementById('goals-fat').value);
+
+        try {
+          const res = await window.API.auth.updatePreferences({
+            calorieGoal,
+            proteinGoal,
+            carbsGoal,
+            fatGoal,
+          });
+          if (res.success) {
+            window.API.showToast('Goal preferences updated!');
+            const currentUser = window.Auth.getUser();
+            currentUser.preferences = res.data.preferences;
+            localStorage.setItem(window.Auth.userKey, JSON.stringify(currentUser));
+
+            goalsModal.classList.remove('active');
+            this.setupMealDates();
+            this.loadWeeklyMeals();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    }
   },
 
   // Get date strings for Monday–Sunday of the week containing the ref date
@@ -448,49 +537,6 @@ const App = {
     if (user && user.preferences) {
       document.getElementById('calorie-target-display').textContent =
         `${user.preferences.calorieGoal || 2000} kcal`;
-      const calorieGoalCard = document.getElementById('summary-calorie-goal');
-      if (calorieGoalCard) {
-        calorieGoalCard.textContent = `${user.preferences.calorieGoal || 2000} kcal`;
-      }
-      const carbsCard = document.getElementById('summary-carbs');
-      if (carbsCard) {
-        carbsCard.textContent = `${user.preferences.carbsGoal || 250}g`;
-      }
-      const fatsCard = document.getElementById('summary-fats');
-      if (fatsCard) {
-        fatsCard.textContent = `${user.preferences.fatGoal || 70}g`;
-      }
-      const proteinCard = document.getElementById('summary-protein');
-      if (proteinCard) {
-        proteinCard.textContent = `${user.preferences.proteinGoal || 100}g`;
-      }
-
-      const formatFill = (value, max) => {
-        if (!max || max === 0) return '100%';
-        return `${Math.min(100, Math.round((value / max) * 100))}%`;
-      };
-
-      const carbsFill = document.getElementById('summary-carbs-fill');
-      if (carbsFill) {
-        carbsFill.style.width = formatFill(
-          user.preferences.carbsGoal || 250,
-          user.preferences.carbsGoal || 250,
-        );
-      }
-      const fatsFill = document.getElementById('summary-fats-fill');
-      if (fatsFill) {
-        fatsFill.style.width = formatFill(
-          user.preferences.fatGoal || 70,
-          user.preferences.fatGoal || 70,
-        );
-      }
-      const proteinFill = document.getElementById('summary-protein-fill');
-      if (proteinFill) {
-        proteinFill.style.width = formatFill(
-          user.preferences.proteinGoal || 100,
-          user.preferences.proteinGoal || 100,
-        );
-      }
     }
   },
 
@@ -516,6 +562,12 @@ const App = {
     const user = window.Auth.getUser();
     const calorieGoal = user?.preferences?.calorieGoal || 2000;
 
+    // Determine selected date if not set
+    if (!this.selectedDate || !dates.includes(this.selectedDate)) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      this.selectedDate = dates.includes(todayStr) ? todayStr : dates[0];
+    }
+
     try {
       // Fetch user's meal plans
       const res = await window.API.mealPlans.getAll();
@@ -526,6 +578,79 @@ const App = {
       plans.forEach(p => {
         planByDateMap[p.date] = p;
       });
+
+      // Calculate consumed macros for the currently selected day
+      const selectedPlan = planByDateMap[this.selectedDate] || {
+        meals: { breakfast: [], lunch: [], dinner: [], snack: [] }
+      };
+
+      let actualCals = 0;
+      let actualProtein = 0;
+      let actualCarbs = 0;
+      let actualFat = 0;
+
+      const slots = ['breakfast', 'lunch', 'dinner', 'snack'];
+      slots.forEach(s => {
+        const items = selectedPlan.meals[s] || [];
+        items.forEach(item => {
+          actualCals += item.calories || 0;
+          if (item.recipe) {
+            actualProtein += parseFloat(item.recipe.nutrition?.protein) || 0;
+            actualCarbs += parseFloat(item.recipe.nutrition?.carbs) || 0;
+            actualFat += parseFloat(item.recipe.nutrition?.fat) || 0;
+          } else {
+            actualProtein += Number(item.protein) || 0;
+            actualCarbs += Number(item.carbs) || 0;
+            actualFat += Number(item.fat) || 0;
+          }
+        });
+      });
+
+      // Update Summary Cards at the top based on selected day
+      const proteinGoal = user?.preferences?.proteinGoal || 100;
+      const carbsGoal = user?.preferences?.carbsGoal || 250;
+      const fatGoal = user?.preferences?.fatGoal || 70;
+
+      const formatFill = (value, max) => {
+        if (!max || max === 0) return '0%';
+        return `${Math.min(100, Math.round((value / max) * 100))}%`;
+      };
+
+      const calorieGoalCard = document.getElementById('summary-calorie-goal');
+      if (calorieGoalCard) {
+        calorieGoalCard.textContent = `${actualCals} / ${calorieGoal} kcal`;
+      }
+      const calorieFill = document.getElementById('summary-calorie-fill');
+      if (calorieFill) {
+        calorieFill.style.width = formatFill(actualCals, calorieGoal);
+      }
+
+      const carbsCard = document.getElementById('summary-carbs');
+      if (carbsCard) {
+        carbsCard.textContent = `${Math.round(actualCarbs)} / ${carbsGoal}g`;
+      }
+      const carbsFill = document.getElementById('summary-carbs-fill');
+      if (carbsFill) {
+        carbsFill.style.width = formatFill(actualCarbs, carbsGoal);
+      }
+
+      const fatsCard = document.getElementById('summary-fats');
+      if (fatsCard) {
+        fatsCard.textContent = `${Math.round(actualFat)} / ${fatGoal}g`;
+      }
+      const fatsFill = document.getElementById('summary-fats-fill');
+      if (fatsFill) {
+        fatsFill.style.width = formatFill(actualFat, fatGoal);
+      }
+
+      const proteinCard = document.getElementById('summary-protein');
+      if (proteinCard) {
+        proteinCard.textContent = `${Math.round(actualProtein)} / ${proteinGoal}g`;
+      }
+      const proteinFill = document.getElementById('summary-protein-fill');
+      if (proteinFill) {
+        proteinFill.style.width = formatFill(actualProtein, proteinGoal);
+      }
 
       let weeklyHtml = '';
 
@@ -543,7 +668,6 @@ const App = {
 
         // Calculate total daily calories
         let totalCals = 0;
-        const slots = ['breakfast', 'lunch', 'dinner', 'snack'];
         slots.forEach(s => {
           if (meals[s]) {
             meals[s].forEach(item => {
@@ -596,8 +720,13 @@ const App = {
           `;
         };
 
+        const isActive = dateStr === this.selectedDate;
+        const activeCardStyle = isActive
+          ? 'border: 2px solid var(--accent-cyan); box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);'
+          : '';
+
         weeklyHtml += `
-          <div class="day-plan-card glass-panel">
+          <div class="day-plan-card glass-panel" style="cursor: pointer; transition: all 0.2s ease; ${activeCardStyle}" onclick="window.App.selectDay('${dateStr}', event)">
             <div class="day-header">
               <div class="day-title-info">
                 <span class="day-name">${dayLabel}</span>
@@ -622,6 +751,14 @@ const App = {
     } catch (err) {
       container.innerHTML = `<p style="color:var(--accent-rose); text-align:center;">Could not load meal plans. Please reload page.</p>`;
     }
+  },
+
+  selectDay(dateStr, event) {
+    if (event && (event.target.closest('button') || event.target.closest('a'))) {
+      return;
+    }
+    this.selectedDate = dateStr;
+    this.loadWeeklyMeals();
   },
 
   openCustomMealModal(dateStr, slotName) {
@@ -958,6 +1095,15 @@ const App = {
         const cals = Number(
           document.getElementById('usda-adder-calories').value,
         );
+        const prot = Number(
+          document.getElementById('usda-adder-protein').value,
+        ) || 0;
+        const carbs = Number(
+          document.getElementById('usda-adder-carbs').value,
+        ) || 0;
+        const fat = Number(
+          document.getElementById('usda-adder-fat').value,
+        ) || 0;
 
         try {
           const getPlanRes = await window.API.mealPlans.getByDate(dateStr);
@@ -970,6 +1116,9 @@ const App = {
           plan.meals[slot].push({
             customMealName: `[USDA] ${name}`,
             calories: cals,
+            protein: prot,
+            carbs: carbs,
+            fat: fat,
           });
 
           await window.API.mealPlans.update(dateStr, plan.meals);
@@ -1104,7 +1253,7 @@ const App = {
             Serving: ${food.servingSize} ${food.servingSizeUnit}
           </div>
 
-          <button class="btn btn-primary btn-sm" style="width: 100%; justify-content: center; margin-top: 0.5rem;" onclick="window.App.openUSDALogger('${food.fdcId}', '${food.description.replace(/'/g, "\\'")}', ${nut.calories}, ${nut.protein}, ${nut.carbs})">
+          <button class="btn btn-primary btn-sm" style="width: 100%; justify-content: center; margin-top: 0.5rem;" onclick="window.App.openUSDALogger('${food.fdcId}', '${food.description.replace(/'/g, "\\'")}', ${nut.calories}, ${nut.protein}, ${nut.carbs}, ${nut.fat})">
             Log into Meal Plan
           </button>
         </article>
@@ -1113,13 +1262,16 @@ const App = {
       .join('');
   },
 
-  openUSDALogger(fdcId, name, calories, protein, carbs) {
+  openUSDALogger(fdcId, name, calories, protein, carbs, fat) {
     const modal = document.getElementById('usda-adder-modal');
     if (!modal) return;
 
     document.getElementById('usda-adder-fdcId').value = fdcId;
     document.getElementById('usda-adder-name').value = name;
     document.getElementById('usda-adder-calories').value = calories;
+    document.getElementById('usda-adder-protein').value = protein || 0;
+    document.getElementById('usda-adder-carbs').value = carbs || 0;
+    document.getElementById('usda-adder-fat').value = fat || 0;
 
     // Set typical date picker default value to today
     document.getElementById('usda-log-date').value = new Date()
@@ -1127,7 +1279,7 @@ const App = {
       .split('T')[0];
 
     document.getElementById('usda-adder-summary').textContent =
-      `Logged description: ${name} (${calories} kcal | Protein: ${protein}g | Carbs: ${carbs}g)`;
+      `Logged description: ${name} (${calories} kcal | Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g)`;
 
     modal.classList.add('active');
   },

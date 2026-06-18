@@ -19,7 +19,10 @@ const MealPlanSchema = new mongoose.Schema({
         default: null
       },
       customMealName: { type: String },
-      calories: { type: Number, default: 0 }
+      calories: { type: Number, default: 0 },
+      protein: { type: Number, default: 0 },
+      carbs: { type: Number, default: 0 },
+      fat: { type: Number, default: 0 }
     }],
     lunch: [{
       recipe: {
@@ -28,7 +31,10 @@ const MealPlanSchema = new mongoose.Schema({
         default: null
       },
       customMealName: { type: String },
-      calories: { type: Number, default: 0 }
+      calories: { type: Number, default: 0 },
+      protein: { type: Number, default: 0 },
+      carbs: { type: Number, default: 0 },
+      fat: { type: Number, default: 0 }
     }],
     dinner: [{
       recipe: {
@@ -37,7 +43,10 @@ const MealPlanSchema = new mongoose.Schema({
         default: null
       },
       customMealName: { type: String },
-      calories: { type: Number, default: 0 }
+      calories: { type: Number, default: 0 },
+      protein: { type: Number, default: 0 },
+      carbs: { type: Number, default: 0 },
+      fat: { type: Number, default: 0 }
     }],
     snack: [{
       recipe: {
@@ -46,7 +55,10 @@ const MealPlanSchema = new mongoose.Schema({
         default: null
       },
       customMealName: { type: String },
-      calories: { type: Number, default: 0 }
+      calories: { type: Number, default: 0 },
+      protein: { type: Number, default: 0 },
+      carbs: { type: Number, default: 0 },
+      fat: { type: Number, default: 0 }
     }]
   }
 }, {

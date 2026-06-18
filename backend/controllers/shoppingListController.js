@@ -107,12 +107,14 @@ const generateFromMealPlans = async (req, res) => {
     if (!mealPlans || mealPlans.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No meal plans found. Add recipes to your meal plan first!'
+        message: 'No meal plans found. Add meals to your meal plan first!'
       });
     }
 
-    // 2. Extract recipe IDs
+    // 2. Extract recipe IDs and custom meal names from all plans
     const recipeIds = new Set();
+    const customMeals = []; // { name, count } for custom meals without recipes
+
     mealPlans.forEach(plan => {
       const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
       mealTypes.forEach(type => {
@@ -120,67 +122,91 @@ const generateFromMealPlans = async (req, res) => {
           plan.meals[type].forEach(item => {
             if (item.recipe) {
               recipeIds.add(item.recipe.toString());
+            } else if (item.customMealName) {
+              // Custom meal — track it for the shopping list
+              customMeals.push({
+                name: item.customMealName.replace(/^\[USDA\]\s*/i, ''), // strip USDA prefix
+                date: plan.date,
+                mealType: type
+              });
             }
           });
         }
       });
     });
 
-    if (recipeIds.size === 0) {
+    const hasRecipes = recipeIds.size > 0;
+    const hasCustomMeals = customMeals.length > 0;
+
+    if (!hasRecipes && !hasCustomMeals) {
       return res.status(400).json({
         success: false,
-        message: 'Your meal plans do not contain any recipes. Add recipes instead of custom items to generate a list!'
+        message: 'Your meal plans are empty. Add recipes or custom meals first!'
       });
     }
 
-    // 3. Fetch all recipe details
-    const recipes = await Recipe.find({ _id: { $in: Array.from(recipeIds) } });
-
-    // 4. Aggregate ingredients
-    // Key: name + '|' + unit
+    // 3. Aggregate ingredients from recipes
     const ingredientAggregation = {};
 
-    recipes.forEach(recipe => {
-      if (recipe.extendedIngredients) {
-        recipe.extendedIngredients.forEach(ing => {
-          const name = ing.name.toLowerCase().trim();
-          const unit = (ing.unit || '').toLowerCase().trim();
-          const amount = ing.amount || 0;
-          
-          // Basic category sorting guesses
-          let category = 'Other';
-          const nameLower = name.toLowerCase();
+    if (hasRecipes) {
+      const recipes = await Recipe.find({ _id: { $in: Array.from(recipeIds) } });
 
-          if (/(apple|banana|berry|lemon|lime|orange|grape|avocado|tomato|lettuce|spinach|kale|cucumber|pepper|onion|garlic|carrot|potato|broccoli|herb|cilantro|parsley)/.test(nameLower)) {
-            category = 'Produce';
-          } else if (/(milk|cheese|yogurt|butter|cream|feta|parmesan)/.test(nameLower)) {
-            category = 'Dairy';
-          } else if (/(chicken|turkey|beef|steak|pork|salmon|shrimp|fish|tuna|bacon|egg)/.test(nameLower)) {
-            category = 'Meat & Seafood';
-          } else if (/(oil|vinegar|sauce|spice|salt|pepper|oregano|paprika|chia|sugar|flour|quinoa|rice|bread|toast|pasta|can)/.test(nameLower)) {
-            category = 'Pantry & Grains';
-          }
+      recipes.forEach(recipe => {
+        if (recipe.extendedIngredients) {
+          recipe.extendedIngredients.forEach(ing => {
+            const name = ing.name.toLowerCase().trim();
+            const unit = (ing.unit || '').toLowerCase().trim();
+            const amount = ing.amount || 0;
+            
+            // Basic category sorting guesses
+            let category = 'Other';
+            const nameLower = name.toLowerCase();
 
-          const aggKey = `${name}|${unit}`;
-          if (ingredientAggregation[aggKey]) {
-            ingredientAggregation[aggKey].quantity += amount;
-          } else {
-            ingredientAggregation[aggKey] = {
-              name: ing.name, // keep original capitalization
-              quantity: amount,
-              unit: ing.unit,
-              category
-            };
-          }
-        });
+            if (/(apple|banana|berry|lemon|lime|orange|grape|avocado|tomato|lettuce|spinach|kale|cucumber|pepper|onion|garlic|carrot|potato|broccoli|herb|cilantro|parsley)/.test(nameLower)) {
+              category = 'Produce';
+            } else if (/(milk|cheese|yogurt|butter|cream|feta|parmesan)/.test(nameLower)) {
+              category = 'Dairy';
+            } else if (/(chicken|turkey|beef|steak|pork|salmon|shrimp|fish|tuna|bacon|egg)/.test(nameLower)) {
+              category = 'Meat & Seafood';
+            } else if (/(oil|vinegar|sauce|spice|salt|pepper|oregano|paprika|chia|sugar|flour|quinoa|rice|bread|toast|pasta|can)/.test(nameLower)) {
+              category = 'Pantry & Grains';
+            }
+
+            const aggKey = `${name}|${unit}`;
+            if (ingredientAggregation[aggKey]) {
+              ingredientAggregation[aggKey].quantity += amount;
+            } else {
+              ingredientAggregation[aggKey] = {
+                name: ing.name, // keep original capitalization
+                quantity: amount,
+                unit: ing.unit,
+                category
+              };
+            }
+          });
+        }
+      });
+    }
+
+    // 4. Aggregate custom meals as individual shopping list items
+    //    Group duplicates by name (case-insensitive) and count occurrences
+    const customMealAgg = {};
+    customMeals.forEach(meal => {
+      const key = meal.name.toLowerCase().trim();
+      if (customMealAgg[key]) {
+        customMealAgg[key].count += 1;
+      } else {
+        customMealAgg[key] = {
+          name: meal.name,
+          count: 1
+        };
       }
     });
 
     // 5. Clear user's current shopping list before generating fresh items
-    // (This prevents compounding same recipes over and over)
     await ShoppingList.deleteMany({ user: req.user.id });
 
-    // 6. Bulk insert generated items
+    // 6. Build items to insert — recipe ingredients + custom meals
     const itemsToInsert = Object.values(ingredientAggregation).map(item => ({
       user: req.user.id,
       name: item.name,
@@ -190,14 +216,39 @@ const generateFromMealPlans = async (req, res) => {
       completed: false
     }));
 
+    // Add custom meals as items (category: "Meal Prep / Custom")
+    Object.values(customMealAgg).forEach(meal => {
+      itemsToInsert.push({
+        user: req.user.id,
+        name: meal.name,
+        quantity: meal.count,
+        unit: meal.count > 1 ? 'servings' : 'serving',
+        category: 'Meal Prep / Custom',
+        completed: false
+      });
+    });
+
     let createdItems = [];
     if (itemsToInsert.length > 0) {
       createdItems = await ShoppingList.insertMany(itemsToInsert);
     }
 
+    // Build a helpful summary message
+    const recipeIngCount = Object.keys(ingredientAggregation).length;
+    const customCount = Object.keys(customMealAgg).length;
+    let message = `Shopping list generated with ${createdItems.length} items`;
+    if (recipeIngCount > 0 && customCount > 0) {
+      message += ` (${recipeIngCount} recipe ingredients + ${customCount} custom meals)`;
+    } else if (recipeIngCount > 0) {
+      message += ` from recipe ingredients`;
+    } else {
+      message += ` from custom meals`;
+    }
+    message += '.';
+
     res.status(200).json({
       success: true,
-      message: `Shopping list generated with ${createdItems.length} ingredients from your meal plans.`,
+      message,
       data: createdItems
     });
   } catch (error) {

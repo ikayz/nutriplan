@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -63,3 +66,4 @@ app.listen(PORT, () => {
     `Open http://localhost:${PORT} in your browser to view the application.`,
   );
 });
+// Reload Trigger 2

@@ -54,7 +54,7 @@
         <span class="summary-card-title">Daily Goal</span>
         <div class="summary-card-value" id="summary-calorie-goal">2,150 kcal</div>
         <div class="summary-card-progress">
-          <div class="summary-card-fill"></div>
+          <div class="summary-card-fill" id="summary-calorie-fill"></div>
         </div>
       </article>
       <article class="summary-card">
@@ -89,10 +89,12 @@
             <div class="current-week-label" id="current-week-label">Week of June 8, 2026</div>
             <button id="btn-next-week" class="btn btn-secondary btn-sm">Next Week &rarr;</button>
           </div>
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <span style="font-size: 0.85rem; font-weight: 600; color: var(--on-surface-variant);">Your Target Daily
-              Calories:</span>
-            <span id="calorie-target-display" class="diet-badge" style="font-size: 0.85rem;">2000 kcal</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span style="font-size: 0.85rem; font-weight: 600; color: var(--on-surface-variant);">Your Target Daily Calories:</span>
+              <span id="calorie-target-display" class="diet-badge" style="font-size: 0.85rem;">2000 kcal</span>
+            </div>
+            <button id="btn-edit-goals-mealplan" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.6rem; font-size: 0.8rem; border-radius: 6px;">⚙️ Edit Goals</button>
           </div>
         </section>
 
@@ -166,9 +168,58 @@
             <label class="form-label" for="custom-meal-calories">Calories (kcal)</label>
             <input type="number" id="custom-meal-calories" class="form-input" placeholder="e.g. 240" min="0" required>
           </div>
+          <div class="form-row-double">
+            <div class="form-group">
+              <label class="form-label" for="custom-meal-protein">Protein (g)</label>
+              <input type="number" id="custom-meal-protein" class="form-input" placeholder="e.g. 15" min="0" value="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custom-meal-carbs">Carbs (g)</label>
+              <input type="number" id="custom-meal-carbs" class="form-input" placeholder="e.g. 30" min="0" value="0" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="custom-meal-fat">Fat (g)</label>
+            <input type="number" id="custom-meal-fat" class="form-input" placeholder="e.g. 8" min="0" value="0" required>
+          </div>
 
           <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
             Add to Meal Plan
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Goals Modal -->
+  <div id="edit-goals-modal" class="modal-overlay">
+    <div class="modal-container glass-panel">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Daily Goals</h3>
+        <button class="btn-modal-close" id="btn-close-goals-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="mealplan-goals-form">
+          <div class="form-group">
+            <label class="form-label" for="goals-calories">Daily Calories Target (kcal)</label>
+            <input type="number" id="goals-calories" class="form-input" min="500" required>
+          </div>
+          <div class="form-row-double">
+            <div class="form-group">
+              <label class="form-label" for="goals-protein">Protein Goal (g)</label>
+              <input type="number" id="goals-protein" class="form-input" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="goals-carbs">Carbs Goal (g)</label>
+              <input type="number" id="goals-carbs" class="form-input" min="0" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="goals-fat">Fat Goal (g)</label>
+            <input type="number" id="goals-fat" class="form-input" min="0" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+            Save Goals
           </button>
         </form>
       </div>
