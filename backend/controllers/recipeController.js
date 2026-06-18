@@ -154,6 +154,130 @@ const MOCK_RECIPES = [
       carbs: '46g',
       fat: '18g'
     }
+  },
+  {
+    spoonacularId: 106,
+    title: 'Overnight Oats with Honey & Almonds',
+    image: 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=800&auto=format&fit=crop&q=80',
+    readyInMinutes: 5,
+    servings: 1,
+    sourceUrl: 'https://example.com/overnight-oats',
+    summary: 'A no-cook, meal-prep-friendly breakfast of rolled oats soaked overnight in milk with honey, cinnamon, and sliced almonds.',
+    extendedIngredients: [
+      { name: 'rolled oats', amount: 0.5, unit: 'cup', originalString: '1/2 cup rolled oats' },
+      { name: 'milk', amount: 0.5, unit: 'cup', originalString: '1/2 cup milk of choice' },
+      { name: 'Greek yogurt', amount: 0.25, unit: 'cup', originalString: '1/4 cup Greek yogurt' },
+      { name: 'honey', amount: 1, unit: 'tbsp', originalString: '1 tbsp honey' },
+      { name: 'sliced almonds', amount: 2, unit: 'tbsp', originalString: '2 tbsp sliced almonds' },
+      { name: 'cinnamon', amount: 0.5, unit: 'tsp', originalString: '1/2 tsp ground cinnamon' }
+    ],
+    analyzedInstructions: [
+      { step: 1, instruction: 'Combine oats, milk, yogurt, honey, and cinnamon in a jar or container.' },
+      { step: 2, instruction: 'Stir well, seal, and refrigerate for at least 4 hours or overnight.' },
+      { step: 3, instruction: 'In the morning, top with sliced almonds and enjoy cold or warmed up.' }
+    ],
+    nutrition: { calories: 350, protein: '14g', carbs: '48g', fat: '12g' }
+  },
+  {
+    spoonacularId: 107,
+    title: 'Spicy Thai Chicken Stir-Fry',
+    image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=800&auto=format&fit=crop&q=80',
+    readyInMinutes: 20,
+    servings: 2,
+    sourceUrl: 'https://example.com/thai-stir-fry',
+    summary: 'A quick, flavorful stir-fry with tender chicken strips, colorful bell peppers, snap peas, and a savory Thai peanut sauce.',
+    extendedIngredients: [
+      { name: 'chicken breast', amount: 2, unit: 'fillets', originalString: '2 chicken breasts, sliced thin' },
+      { name: 'bell peppers', amount: 2, unit: 'whole', originalString: '2 bell peppers (red and yellow), sliced' },
+      { name: 'snap peas', amount: 1, unit: 'cup', originalString: '1 cup snap peas' },
+      { name: 'soy sauce', amount: 3, unit: 'tbsp', originalString: '3 tbsp soy sauce' },
+      { name: 'peanut butter', amount: 2, unit: 'tbsp', originalString: '2 tbsp creamy peanut butter' },
+      { name: 'sesame oil', amount: 1, unit: 'tbsp', originalString: '1 tbsp sesame oil' },
+      { name: 'sriracha', amount: 1, unit: 'tsp', originalString: '1 tsp sriracha hot sauce' },
+      { name: 'garlic', amount: 2, unit: 'cloves', originalString: '2 cloves garlic, minced' }
+    ],
+    analyzedInstructions: [
+      { step: 1, instruction: 'Mix soy sauce, peanut butter, sriracha, and a splash of water to make the sauce.' },
+      { step: 2, instruction: 'Heat sesame oil in a wok over high heat. Cook chicken 5-6 minutes until golden.' },
+      { step: 3, instruction: 'Add garlic, bell peppers, and snap peas. Stir-fry 3 minutes.' },
+      { step: 4, instruction: 'Pour in the sauce, toss to coat, and serve over steamed rice or noodles.' }
+    ],
+    nutrition: { calories: 440, protein: '36g', carbs: '18g', fat: '24g' }
+  },
+  {
+    spoonacularId: 108,
+    title: 'Black Bean & Sweet Potato Tacos',
+    image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=800&auto=format&fit=crop&q=80',
+    readyInMinutes: 30,
+    servings: 3,
+    sourceUrl: 'https://example.com/sweet-potato-tacos',
+    summary: 'Hearty vegetarian tacos filled with roasted sweet potato cubes, seasoned black beans, creamy avocado, and a zesty lime crema.',
+    extendedIngredients: [
+      { name: 'sweet potato', amount: 2, unit: 'medium', originalString: '2 medium sweet potatoes, cubed' },
+      { name: 'black beans', amount: 1, unit: 'can', originalString: '1 can (15 oz) black beans, drained' },
+      { name: 'corn tortillas', amount: 6, unit: 'pieces', originalString: '6 small corn tortillas' },
+      { name: 'avocado', amount: 1, unit: 'whole', originalString: '1 ripe avocado, sliced' },
+      { name: 'sour cream', amount: 3, unit: 'tbsp', originalString: '3 tbsp sour cream' },
+      { name: 'lime', amount: 1, unit: 'whole', originalString: '1 lime, juiced' },
+      { name: 'cumin', amount: 1, unit: 'tsp', originalString: '1 tsp ground cumin' },
+      { name: 'chili powder', amount: 0.5, unit: 'tsp', originalString: '1/2 tsp chili powder' }
+    ],
+    analyzedInstructions: [
+      { step: 1, instruction: 'Preheat oven to 425°F. Toss sweet potato cubes with oil, cumin, chili powder, salt. Roast 20 min.' },
+      { step: 2, instruction: 'Warm black beans in a saucepan with a pinch of cumin.' },
+      { step: 3, instruction: 'Mix sour cream with lime juice for the crema.' },
+      { step: 4, instruction: 'Warm tortillas, fill with sweet potato, beans, avocado, and drizzle with lime crema.' }
+    ],
+    nutrition: { calories: 380, protein: '12g', carbs: '52g', fat: '14g' }
+  },
+  {
+    spoonacularId: 109,
+    title: 'Lemon Herb Shrimp Pasta',
+    image: 'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=800&auto=format&fit=crop&q=80',
+    readyInMinutes: 20,
+    servings: 2,
+    sourceUrl: 'https://example.com/shrimp-pasta',
+    summary: 'A light and fresh pasta dish with sautéed garlic shrimp, cherry tomatoes, and a bright lemon-herb sauce over angel hair pasta.',
+    extendedIngredients: [
+      { name: 'angel hair pasta', amount: 8, unit: 'oz', originalString: '8 oz angel hair pasta' },
+      { name: 'shrimp', amount: 0.5, unit: 'lb', originalString: '1/2 lb large shrimp, peeled and deveined' },
+      { name: 'cherry tomatoes', amount: 1, unit: 'cup', originalString: '1 cup cherry tomatoes, halved' },
+      { name: 'garlic', amount: 3, unit: 'cloves', originalString: '3 cloves garlic, minced' },
+      { name: 'olive oil', amount: 2, unit: 'tbsp', originalString: '2 tbsp olive oil' },
+      { name: 'lemon', amount: 1, unit: 'whole', originalString: '1 lemon, zested and juiced' },
+      { name: 'fresh basil', amount: 0.25, unit: 'cup', originalString: '1/4 cup fresh basil, chopped' }
+    ],
+    analyzedInstructions: [
+      { step: 1, instruction: 'Cook pasta according to package directions. Reserve 1/2 cup pasta water before draining.' },
+      { step: 2, instruction: 'Heat olive oil in a large skillet. Sauté garlic 30 seconds, add shrimp, cook 2-3 min per side.' },
+      { step: 3, instruction: 'Add cherry tomatoes, lemon juice, and zest. Toss in drained pasta with a splash of pasta water.' },
+      { step: 4, instruction: 'Garnish with fresh basil, season with salt and pepper, and serve immediately.' }
+    ],
+    nutrition: { calories: 460, protein: '28g', carbs: '54g', fat: '14g' }
+  },
+  {
+    spoonacularId: 110,
+    title: 'Fluffy Banana Oat Pancakes',
+    image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&auto=format&fit=crop&q=80',
+    readyInMinutes: 15,
+    servings: 2,
+    sourceUrl: 'https://example.com/banana-pancakes',
+    summary: 'Naturally sweetened, gluten-free pancakes made with ripe bananas and oats. A wholesome weekend breakfast the whole family will love.',
+    extendedIngredients: [
+      { name: 'ripe banana', amount: 2, unit: 'whole', originalString: '2 ripe bananas' },
+      { name: 'rolled oats', amount: 1, unit: 'cup', originalString: '1 cup rolled oats (blended into flour)' },
+      { name: 'eggs', amount: 2, unit: 'large', originalString: '2 large eggs' },
+      { name: 'baking powder', amount: 1, unit: 'tsp', originalString: '1 tsp baking powder' },
+      { name: 'vanilla extract', amount: 0.5, unit: 'tsp', originalString: '1/2 tsp vanilla extract' },
+      { name: 'butter', amount: 1, unit: 'tbsp', originalString: '1 tbsp butter for the pan' }
+    ],
+    analyzedInstructions: [
+      { step: 1, instruction: 'Blend oats into a fine flour using a blender or food processor.' },
+      { step: 2, instruction: 'Mash bananas in a bowl. Add eggs, oat flour, baking powder, and vanilla. Mix until smooth.' },
+      { step: 3, instruction: 'Heat a non-stick pan with a little butter over medium heat. Pour 1/4 cup batter per pancake.' },
+      { step: 4, instruction: 'Cook 2-3 minutes until bubbles form, flip, and cook 1-2 more minutes. Serve with fresh berries or maple syrup.' }
+    ],
+    nutrition: { calories: 310, protein: '12g', carbs: '44g', fat: '10g' }
   }
 ];
 

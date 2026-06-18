@@ -23,16 +23,16 @@
       </a>
       <nav>
         <ul class="nav-menu" id="nav-menu">
-          <!-- Loaded dynamically -->
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="recipes.html" class="nav-link">Explore</a></li>
+          <li><a href="mealplan.html" class="nav-link active">Meal Planner</a></li>
+          <li><a href="shoppinglist.html" class="nav-link">Shopping List</a></li>
         </ul>
-        <nav>
-          <ul class="nav-menu" id="nav-menu">
-            <li><a href="index.html" class="nav-link">Home</a></li>
-            <li><a href="recipes.html" class="nav-link">Explore</a></li>
-            <li><a href="mealplan.html" class="nav-link active">Meal Planner</a></li>
-            <li><a href="shoppinglist.html" class="nav-link">Shopping List</a></li>
-          </ul>
-        </nav>
+      </nav>
+      <div class="nav-actions" id="header-actions">
+        <!-- Loaded dynamically -->
+      </div>
+    </div>
   </header>
 
   <main class="main-content">
@@ -109,39 +109,18 @@
       <aside class="mealplan-aside">
         <section class="recommendation-panel">
           <h3>Recommendations</h3>
-          <div class="recommendation-list">
-            <article class="recommendation-card">
-              <span>Balanced lunch idea</span>
-              <h4>Greek Power Salad</h4>
-              <span>4.8 • 15 min</span>
-            </article>
-            <article class="recommendation-card">
-              <span>Fresh dinner idea</span>
-              <h4>Fresh Tuna Poke</h4>
-              <span>4.9 • 10 min</span>
-            </article>
-            <article class="recommendation-card">
-              <span>Chef favorite</span>
-              <h4>Crispy Lemon Salmon</h4>
-              <span>4.7 • 25 min</span>
-            </article>
+          <div class="recommendation-list" id="recommendation-list">
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Loading recipes...</p>
           </div>
-          <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;">Discover More Recipes</button>
+          <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;" onclick="window.location.href='recipes.html'">Discover More Recipes</button>
         </section>
 
         <section class="shopping-preview-panel">
           <h3>Shopping List Preview</h3>
-          <div class="preview-list">
-            <div style="display: flex; justify-content: space-between; gap: 0.5rem;"><span>Fresh
-                Avocados</span><strong>3x</strong></div>
-            <div style="display: flex; justify-content: space-between; gap: 0.5rem;"><span>Organic
-                Quinoa</span><strong>500g</strong></div>
-            <div style="display: flex; justify-content: space-between; gap: 0.5rem;"><span>Salmon
-                Fillets</span><strong>2x</strong></div>
-            <div style="display: flex; justify-content: space-between; gap: 0.5rem;"><span>…and 12 more items</span>
-            </div>
+          <div class="preview-list" id="shopping-preview-list">
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Loading...</p>
           </div>
-          <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">View Full List</button>
+          <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="window.location.href='shoppinglist.html'">View Full List</button>
         </section>
       </aside>
     </div>
@@ -231,6 +210,16 @@
       <p>&copy; 2026 NutriPlan. Built with Express, MongoDB, and Vanilla JS.</p>
     </div>
   </footer>
+
+  <!-- Recipe Detail Modal -->
+  <div class="modal-overlay" id="recipe-detail-modal">
+    <div class="modal-content mealplan-recipe-modal">
+      <button class="btn-modal-close" id="btn-close-recipe-modal">&times;</button>
+      <div id="recipe-detail-body">
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading...</p>
+      </div>
+    </div>
+  </div>
 
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>

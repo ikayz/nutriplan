@@ -67,7 +67,7 @@ const App = {
       });
 
       // Trigger default search on load
-      const defaultSearchQuery = 'healthy';
+      const defaultSearchQuery = '';
       document.getElementById('query-input').value = defaultSearchQuery;
       searchForm.dispatchEvent(
         new Event('submit', { bubbles: true, cancelable: true }),
@@ -339,6 +339,14 @@ const App = {
   initMealPlanPage() {
     this.setupMealDates();
     this.loadWeeklyMeals();
+    this.loadShoppingPreview();
+    this.loadRecommendations();
+
+    // Recipe detail modal close handlers
+    const recipeModal = document.getElementById('recipe-detail-modal');
+    const btnCloseRecipe = document.getElementById('btn-close-recipe-modal');
+    if (btnCloseRecipe) btnCloseRecipe.addEventListener('click', () => recipeModal.classList.remove('active'));
+    if (recipeModal) recipeModal.addEventListener('click', (e) => { if (e.target === recipeModal) recipeModal.classList.remove('active'); });
 
     document.getElementById('btn-prev-week').addEventListener('click', () => {
       this.currentDateRef.setDate(this.currentDateRef.getDate() - 7);
@@ -787,6 +795,118 @@ const App = {
       }
     } catch (err) {
       console.error(err);
+    }
+  },
+
+  async loadShoppingPreview() {
+    const container = document.getElementById('shopping-preview-list');
+    if (!container) return;
+    try {
+      const res = await window.API.shoppingList.get();
+      const list = res.data || [];
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No items yet. Auto-generate from your meal plan!</p>';
+        return;
+      }
+      const maxShow = 5;
+      const shown = list.slice(0, maxShow);
+      let html = shown.map(item =>
+        `<div style="display: flex; justify-content: space-between; gap: 0.5rem;">
+          <span>${item.name}</span><strong>${item.quantity} ${item.unit || ''}</strong>
+        </div>`
+      ).join('');
+      if (list.length > maxShow) {
+        html += `<div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem;"><span>…and ${list.length - maxShow} more items</span></div>`;
+      }
+      container.innerHTML = html;
+    } catch (err) {
+      container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Could not load preview.</p>';
+    }
+  },
+
+  async loadRecommendations() {
+    const container = document.getElementById('recommendation-list');
+    if (!container) return;
+    try {
+      const res = await window.API.recipes.search('');
+      const allRecipes = res.results || [];
+      // Shuffle and pick 3 random
+      const shuffled = allRecipes.sort(() => 0.5 - Math.random());
+      const recipes = shuffled.slice(0, 3);
+      if (recipes.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No recipes found.</p>';
+        return;
+      }
+      container.innerHTML = recipes.map(r => {
+        const mins = r.readyInMinutes || '';
+        const cals = r.nutrition?.calories || '';
+        return `<article class="recommendation-card" style="cursor: pointer;" onclick="window.App.showRecipeDetail(${r.id})">
+          <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Suggested</span>
+          <h4 style="margin: 0.25rem 0;">${r.title}</h4>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">${cals ? cals + ' cal' : ''}${cals && mins ? ' • ' : ''}${mins ? mins + ' min' : ''}</span>
+        </article>`;
+      }).join('');
+    } catch (err) {
+      container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Could not load recommendations.</p>';
+    }
+  },
+
+  async showRecipeDetail(recipeId) {
+    const modal = document.getElementById('recipe-detail-modal');
+    const body = document.getElementById('recipe-detail-body');
+    if (!modal || !body) return;
+
+    body.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading recipe...</p>';
+    modal.classList.add('active');
+
+    try {
+      const res = await window.API.recipes.getDetails(recipeId);
+      const r = res.recipe || res.data || res;
+
+      const cals = r.nutrition?.calories || '–';
+      const protein = r.nutrition?.protein || '–';
+      const carbs = r.nutrition?.carbs || '–';
+      const fat = r.nutrition?.fat || '–';
+
+      const ingredientsHtml = (r.extendedIngredients || []).map(ing =>
+        `<li class="mealplan-recipe-modal__list-item">${ing.originalString || `${ing.amount} ${ing.unit} ${ing.name}`}</li>`
+      ).join('');
+
+      const stepsHtml = (r.analyzedInstructions || []).map(s =>
+        `<li class="mealplan-recipe-modal__list-item"><strong>Step ${s.step || s.number || ''}:</strong> ${s.instruction || ''}</li>`
+      ).join('');
+
+      body.innerHTML = `
+        ${r.image ? `<img class="mealplan-recipe-modal__image" src="${r.image}" alt="${r.title}">` : ''}
+        <h3 class="mealplan-recipe-modal__title">${r.title}</h3>
+        <div class="mealplan-recipe-modal__chips">
+          ${r.readyInMinutes ? `<span class="mealplan-recipe-modal__chip mealplan-recipe-modal__chip--primary">⏱ ${r.readyInMinutes} min</span>` : ''}
+          ${r.servings ? `<span class="mealplan-recipe-modal__chip">🍽 ${r.servings} servings</span>` : ''}
+        </div>
+        <div class="mealplan-recipe-modal__nutrition">
+          <div class="mealplan-recipe-modal__nutrition-card">
+            <div class="mealplan-recipe-modal__nutrition-value">${cals}</div>
+            <div class="mealplan-recipe-modal__nutrition-label">Calories</div>
+          </div>
+          <div class="mealplan-recipe-modal__nutrition-card">
+            <div class="mealplan-recipe-modal__nutrition-value mealplan-recipe-modal__nutrition-value--secondary">${protein}</div>
+            <div class="mealplan-recipe-modal__nutrition-label">Protein</div>
+          </div>
+          <div class="mealplan-recipe-modal__nutrition-card">
+            <div class="mealplan-recipe-modal__nutrition-value">${carbs}</div>
+            <div class="mealplan-recipe-modal__nutrition-label">Carbs</div>
+          </div>
+          <div class="mealplan-recipe-modal__nutrition-card">
+            <div class="mealplan-recipe-modal__nutrition-value mealplan-recipe-modal__nutrition-value--neutral">${fat}</div>
+            <div class="mealplan-recipe-modal__nutrition-label">Fat</div>
+          </div>
+        </div>
+        ${ingredientsHtml ? `<h4 class="mealplan-recipe-modal__section-title">🥘 Ingredients</h4><ul class="mealplan-recipe-modal__list">${ingredientsHtml}</ul>` : ''}
+        ${stepsHtml ? `<h4 class="mealplan-recipe-modal__section-title">📝 Instructions</h4><ol class="mealplan-recipe-modal__list mealplan-recipe-modal__list--ordered">${stepsHtml}</ol>` : ''}
+        <button class="btn btn-primary" style="width: 100%; margin-top: 1.2rem; justify-content: center;" onclick="window.location.href='recipes.html'">View All Recipes</button>
+      `;
+    } catch (err) {
+      body.innerHTML = '<p style="text-align: center; color: var(--danger-color); padding: 2rem;">Failed to load recipe details.</p>';
     }
   },
 
